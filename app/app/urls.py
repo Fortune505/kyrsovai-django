@@ -17,7 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from loans.views import UserViewSet, BranchViewSet, TariffViewSet, LoanViewSet, PaymentViewSet
+
+from loans.api import UserViewSet, BranchViewSet, TariffViewSet, LoanViewSet, PaymentViewSet
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)

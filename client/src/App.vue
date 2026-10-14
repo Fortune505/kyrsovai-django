@@ -12,21 +12,35 @@ onBeforeMount(() => {
 
 <template>
   <div>
-    
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
       <div class="container">
         <span class="navbar-brand fw-bold text-info">Синий Крест Давида</span>
-        <div class="navbar-nav">
-          <RouterLink class="nav-link" to="/branches">Филиалы</RouterLink>
-          <RouterLink class="nav-link" to="/tariffs">Тарифы</RouterLink>
-          <RouterLink class="nav-link" to="/loans">Займы</RouterLink>
-          <RouterLink class="nav-link" to="/payments">Платежи</RouterLink>
-          <RouterLink class="nav-link" to="/users">Пользователи</RouterLink>
+
+        <div class="collapse navbar-collapse justify-content-between" id="navbarNavDropdown">
+          
+          <ul class="navbar-nav">
+            <li class="nav-item"><RouterLink class="nav-link" to="/branches">Филиалы</RouterLink></li>
+            <li class="nav-item"><RouterLink class="nav-link" to="/tariffs">Тарифы</RouterLink></li>
+            <li class="nav-item"><RouterLink class="nav-link" to="/loans">Займы</RouterLink></li>
+            <li class="nav-item"><RouterLink class="nav-link" to="/payments">Платежи</RouterLink></li>
+            <li class="nav-item"><RouterLink class="nav-link" to="/users">Пользователи</RouterLink></li>
+          </ul>
+
+          <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Пользователь
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/admin">Админка</a></li>
+              </ul>
+            </li>
+          </ul>
+
         </div>
       </div>
     </nav>
 
-    
     <div class="container">
       <RouterView />
     </div>

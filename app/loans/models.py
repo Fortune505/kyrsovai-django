@@ -5,6 +5,8 @@ class Branch(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название филиала")
     city = models.CharField(max_length=100, verbose_name="Город")
     address = models.CharField(max_length=200, verbose_name="Адрес")
+    
+    picture = models.ImageField("Изображение", null=True, blank=True, upload_to='branch_pictures/')
 
     def __str__(self):
         return f"{self.name} ({self.city})"
@@ -41,6 +43,8 @@ class Loan(models.Model):
     issue_date = models.DateField(auto_now_add=True, verbose_name="Дата выдачи")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active', verbose_name="Статус")
 
+    picture = models.ImageField("Изображение", null=True, blank=True, upload_to='loan_pictures/')
+
     def __str__(self):
         return f"Займ #{self.id} - {self.client.username} ({self.amount} руб.)"
 
@@ -52,7 +56,7 @@ class Payment(models.Model):
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, verbose_name="Заем")
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма платежа")
     payment_date = models.DateField(auto_now_add=True, verbose_name="Дата и время платежа")
-
+    
     def __str__(self):
         return f"Платеж #{self.id} по займу #{self.loan.id} на {self.payment_amount} руб."
 

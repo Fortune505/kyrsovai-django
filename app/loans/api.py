@@ -2,8 +2,8 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 
 from django.contrib.auth.models import User
-from loans.models import Branch, Tariff, Loan, Payment
-from loans.serializers import UserSerializer, BranchSerializer, TariffSerializer, LoanSerializer, PaymentSerializer
+from loans.models import Branch, Tariff, Loan, Payment, BranchPicture
+from loans.serializers import UserSerializer, BranchSerializer, TariffSerializer, LoanSerializer, PaymentSerializer, BranchPictureSerializer
 
 class BranchViewSet(
     mixins.ListModelMixin,
@@ -15,6 +15,17 @@ class BranchViewSet(
 ):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
+
+class BranchPictureViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet
+):
+    queryset = BranchPicture.objects.all()
+    serializer_class = BranchPictureSerializer
 
 class TariffViewSet(
     mixins.ListModelMixin,

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Branch, Tariff, Loan, Payment
+from .models import Branch, Tariff, Loan, Payment, BranchPicture
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,6 +10,11 @@ class UserSerializer(serializers.ModelSerializer):
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
+        fields = '__all__'
+
+class BranchPictureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BranchPicture
         fields = '__all__'
 
 class TariffSerializer(serializers.ModelSerializer):

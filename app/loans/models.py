@@ -15,6 +15,17 @@ class Branch(models.Model):
         verbose_name = "Филиал"
         verbose_name_plural = "Филиалы"
 
+class BranchPicture(models.Model):
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="pictures", verbose_name="Филиал")
+    picture = models.ImageField("Изображение", upload_to="branch_gallery/")
+
+    def __str__(self):
+        return f"Фото #{self.id} филиала {self.branch.name}"
+
+    class Meta:
+        verbose_name = "Фотография филиала"
+        verbose_name_plural = "Фотографии филиалов"
+
 class Tariff(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название тарифа")
     interest_rate = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Ставка (% в день)")
@@ -63,3 +74,4 @@ class Payment(models.Model):
     class Meta:
         verbose_name = "Платеж"
         verbose_name_plural = "Платежи"
+

@@ -1,9 +1,13 @@
 from django.contrib import admin
-from .models import Branch, Tariff, Loan, Payment
+from .models import Branch, Tariff, Loan, Payment, BranchPicture
 
 @admin.register(Branch)
 class BranchAdmin(admin.ModelAdmin):
     list_display = ('name', 'city', 'address')
+
+@admin.register(BranchPicture)
+class BranchPictureAdmin(admin.ModelAdmin):
+    list_display = ('id', 'branch', 'picture')
 
 @admin.register(Tariff)
 class TariffAdmin(admin.ModelAdmin):

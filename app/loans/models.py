@@ -46,7 +46,7 @@ class Loan(models.Model):
         ('overdue', 'Просрочен'),
     ]
 
-    client = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Клиент")
+    client = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Клиент")
     tariff = models.ForeignKey(Tariff, on_delete=models.PROTECT, verbose_name="Тариф")
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, verbose_name="Филиал")
 

@@ -3,40 +3,39 @@ import { ref, onBeforeMount } from 'vue'
 import axios from 'axios'
 
 const branches = ref([])
-const branchPictures = ref([]) 
-const branchToAdd = ref({
-  name: '',
-  city: '',
-  address: ''
-})
+const branchPictures = ref([])
+
+const currentUser = ref({ is_authenticated: false, is_staff: false, is_superuser: false })
+
+const branchToAdd = ref({ name: '', city: '', address: '' })
 const branchPictureRef = ref()
 const branchPictureUrl = ref()
+
 const branchToEdit = ref({})
 const editBranchPictureRef = ref()
+
 const activeBranchForAlbum = ref(null)
 const albumPictureRef = ref()
 const albumPicturePreviewUrl = ref()
+
 const activeModalImage = ref('')
 
 function openImage(url) {
   activeModalImage.value = url
 }
 
-// Предпросмотр логотипа филиала
 function onPictureChange() {
   if (branchPictureRef.value && branchPictureRef.value.files[0]) {
     branchPictureUrl.value = URL.createObjectURL(branchPictureRef.value.files[0])
   }
 }
 
-// Предпросмотр фото для альбома
 function onAlbumPictureChange() {
   if (albumPictureRef.value && albumPictureRef.value.files[0]) {
     albumPicturePreviewUrl.value = URL.createObjectURL(albumPictureRef.value.files[0])
   }
 }
 
-// Загрузка филиалов и фотографий альбомов с бэкенда
 async function fetchData() {
   const [resBranches, resPictures] = await Promise.all([
     axios.get('/api/branches/'),
@@ -46,11 +45,14 @@ async function fetchData() {
   branchPictures.value = resPictures.data
 }
 
-onBeforeMount(() => {
-  fetchData()
+onBeforeMount(async () => {
+  try {
+    const uRes = await axios.get('/api/users/current/')
+    currentUser.value = uRes.data
+  } catch (e) {}
+  await fetchData()
 })
 
-// Добавление филиала
 async function onBranchAdd() {
   const formData = new FormData()
   formData.append('name', branchToAdd.value.name)
@@ -62,27 +64,22 @@ async function onBranchAdd() {
   }
 
   await axios.post('/api/branches/', formData)
-  
   branchToAdd.value = { name: '', city: '', address: '' }
   branchPictureUrl.value = null
   if (branchPictureRef.value) branchPictureRef.value.value = ''
-  
   await fetchData()
 }
 
-// Удаление филиала
 async function onBranchDelete(item) {
-  if (!confirm('Вы уверены, что хотите удалить этот филиал со всеми фото?')) return
+  if (!confirm('Удалить этот филиал со всеми фото?')) return
   await axios.delete(`/api/branches/${item.id}/`)
   await fetchData()
 }
 
-// Подготовка к редактированию
 function onBranchEditClick(item) {
   branchToEdit.value = { ...item }
 }
 
-// Сохранение изменений филиала
 async function onBranchUpdate() {
   const formData = new FormData()
   formData.append('name', branchToEdit.value.name)
@@ -97,33 +94,26 @@ async function onBranchUpdate() {
   await fetchData()
 }
 
-// Открытие альбома конкретного филиала
 function openAlbum(branch) {
   activeBranchForAlbum.value = branch
   albumPicturePreviewUrl.value = null
   if (albumPictureRef.value) albumPictureRef.value.value = ''
 }
 
-// Загрузка нового фото в альбом филиала через FormData
 async function onAddPhotoToAlbum() {
   if (!albumPictureRef.value || !albumPictureRef.value.files[0]) {
-    alert('Пожалуйста, выберите файл с фотографией!')
+    alert('Выберите файл с фотографией!')
     return
   }
-
   const formData = new FormData()
   formData.append('branch', activeBranchForAlbum.value.id)
   formData.append('picture', albumPictureRef.value.files[0])
-
   await axios.post('/api/branch-pictures/', formData)
-
   albumPicturePreviewUrl.value = null
   if (albumPictureRef.value) albumPictureRef.value.value = ''
-  
   await fetchData()
 }
 
-// Удаление отдельной фотографии из альбома
 async function onDeletePhotoFromAlbum(pictureId) {
   if (!confirm('Удалить эту фотографию из альбома?')) return
   await axios.delete(`/api/branch-pictures/${pictureId}/`)
@@ -133,10 +123,14 @@ async function onDeletePhotoFromAlbum(pictureId) {
 
 <template>
   <div>
-    <h2>Филиалы компании</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Наши филиалы и отделения</h2>
+      <span v-if="currentUser.is_staff || currentUser.is_superuser" class="badge bg-secondary">
+        Режим управления персоналом
+      </span>
+    </div>
 
-    <!-- Форма добавления филиала -->
-    <div class="card p-3 my-3 bg-light">
+    <div v-if="currentUser.is_staff || currentUser.is_superuser" class="card p-3 my-3 bg-light shadow-sm">
       <h5>Добавить новый филиал:</h5>
       <form @submit.prevent.stop="onBranchAdd" class="row g-2 align-items-center">
         <div class="col-md-3">
@@ -152,7 +146,7 @@ async function onDeletePhotoFromAlbum(pictureId) {
           <input class="form-control" type="file" ref="branchPictureRef" @change="onPictureChange">
         </div>
         <div class="col-md-1">
-          <button class="btn btn-primary w-100" type="submit">Добавить</button>
+          <button class="btn btn-primary w-100" type="submit">+</button>
         </div>
         <div class="col-12 mt-2" v-if="branchPictureUrl">
           <span class="me-2 text-muted">Предпросмотр:</span>
@@ -161,8 +155,41 @@ async function onDeletePhotoFromAlbum(pictureId) {
       </form>
     </div>
 
-    <!-- Таблица со списком филиалов -->
-    <table class="table table-striped mt-3 align-middle">
+    <div v-if="!currentUser.is_staff && !currentUser.is_superuser" class="row g-4 my-2">
+      <div class="col-md-4 col-sm-6" v-for="item in branches" :key="item.id">
+        <div class="card h-100 shadow-sm border-0 bg-white">
+          <img 
+            :src="item.picture || '/default_loan.png'" 
+            class="card-img-top p-3" 
+            style="height: 180px; object-fit: contain; background: #f8f9fa; cursor: pointer;"
+            data-bs-toggle="modal" 
+            data-bs-target="#imageModal" 
+            @click="openImage(item.picture || '/default_loan.png')" 
+            title="Нажмите для увеличения"
+          />
+          <div class="card-body d-flex flex-column justify-content-between">
+            <div>
+              <h5 class="card-title text-primary fw-bold">{{ item.name }}</h5>
+              <p class="card-text text-muted mb-1"><strong>Город:</strong> {{ item.city }}</p>
+              <p class="card-text text-muted"><strong>Адрес:</strong> {{ item.address }}</p>
+            </div>
+            <button 
+              class="btn btn-outline-info w-100 mt-3" 
+              data-bs-toggle="modal" 
+              data-bs-target="#albumModal" 
+              @click="openAlbum(item)"
+            >
+              Фотоальбом отделения ({{ branchPictures.filter(p => p.branch === item.id).length }})
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-if="branches.length === 0" class="col-12 text-center text-muted">
+        Филиалов пока нет.
+      </div>
+    </div>
+
+    <table v-else class="table table-striped mt-3 align-middle">
       <thead>
         <tr>
           <th>ID</th>
@@ -192,7 +219,6 @@ async function onDeletePhotoFromAlbum(pictureId) {
           <td>{{ item.city }}</td>
           <td>{{ item.address }}</td>
           <td>
-            <!-- Кнопка перехода в альбом филиала -->
             <button 
               class="btn btn-info btn-sm me-2 text-white" 
               data-bs-toggle="modal" 
@@ -212,13 +238,10 @@ async function onDeletePhotoFromAlbum(pictureId) {
             <button class="btn btn-danger btn-sm" @click="onBranchDelete(item)">Удалить</button>
           </td>
         </tr>
-        <tr v-if="branches.length === 0">
-          <td colspan="6" class="text-center text-muted">Записей пока нет.</td>
-        </tr>
       </tbody>
     </table>
 
-    <!-- Модальное окно альбома фотографий -->
+    <!-- Модальное окно альбома -->
     <div class="modal fade" id="albumModal" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -227,9 +250,8 @@ async function onDeletePhotoFromAlbum(pictureId) {
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            
-            <!-- Форма добавления фото в альбом -->
-            <div class="card p-3 mb-4 bg-light">
+            <!-- Загрузка фото видна только персоналу -->
+            <div v-if="currentUser.is_staff || currentUser.is_superuser" class="card p-3 mb-4 bg-light">
               <h6>Добавить фотографию в альбом:</h6>
               <div class="row g-2 align-items-center">
                 <div class="col-md-9">
@@ -245,8 +267,7 @@ async function onDeletePhotoFromAlbum(pictureId) {
               </div>
             </div>
 
-            <!-- Сетка (галерея) фотографий альбома -->
-            <h6>Все фотографии филиала:</h6>
+            <!-- Галерея фото -->
             <div class="row g-3">
               <div 
                 class="col-md-4 col-sm-6 text-center" 
@@ -261,9 +282,9 @@ async function onDeletePhotoFromAlbum(pictureId) {
                     data-bs-toggle="modal" 
                     data-bs-target="#imageModal" 
                     @click="openImage(pic.picture)"
-                    title="Кликните для увеличения"
                   />
-                  <div class="card-body p-2 d-flex flex-column justify-content-end">
+                  <!-- Удаление фото доступно только персоналу -->
+                  <div v-if="currentUser.is_staff || currentUser.is_superuser" class="card-body p-2 d-flex flex-column justify-content-end">
                     <button class="btn btn-outline-danger btn-sm w-100" @click="onDeletePhotoFromAlbum(pic.id)">Удалить фото</button>
                   </div>
                 </div>
@@ -274,9 +295,8 @@ async function onDeletePhotoFromAlbum(pictureId) {
               v-if="branchPictures.filter(p => p.branch === activeBranchForAlbum?.id).length === 0" 
               class="text-center text-muted my-4"
             >
-              В альбоме этого филиала пока нет фотографий. Загрузите первую выше!
+              В альбоме этого филиала пока нет фотографий.
             </div>
-
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть альбом</button>
@@ -319,7 +339,7 @@ async function onDeletePhotoFromAlbum(pictureId) {
       </div>
     </div>
 
-    <!-- Модальное окно для просмотра увеличенной картинки по клику -->
+    <!-- Модальное окно просмотра увеличенного фото -->
     <div class="modal fade" id="imageModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -336,6 +356,3 @@ async function onDeletePhotoFromAlbum(pictureId) {
 
   </div>
 </template>
-
-<style scoped>
-</style>

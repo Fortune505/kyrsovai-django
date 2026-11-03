@@ -1,13 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '../views/HomeView.vue'
 import BranchesView from '../views/BranchesView.vue'
 import TariffsView from '../views/TariffsView.vue'
 import LoansView from '../views/LoansView.vue'
 import PaymentsView from '../views/PaymentsView.vue'
 import UsersView from '../views/UsersView.vue'
 
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: HomeView
+    },
     {
       path: '/',
       redirect: '/branches'
